@@ -1703,8 +1703,6 @@ main() {
     update_system
     info "Installing all dependencies..."
     install_basic_deps
-    install_gpu_drivers
-    install_docker
     install_nvidia_toolkit
     install_rust
     install_just
