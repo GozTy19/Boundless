@@ -242,44 +242,6 @@ install_basic_deps() {
     success "Basic dependencies installed"
 }
 
-# Install Docker
-install_docker() {
-    if command_exists docker; then
-        info "Docker already installed"
-        return
-    fi
-    info "Installing Docker..."
-    if ! check_dpkg_status; then
-        exit $EXIT_DPKG_ERROR
-    fi
-    {
-        if ! apt install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common 2>&1; then
-            error "Failed to install Docker prerequisites"
-            if apt install -y apt-transport-https 2>&1 | grep -q "dpkg was interrupted"; then
-                exit $EXIT_DPKG_ERROR
-            fi
-            exit $EXIT_DEPENDENCY_FAILED
-        fi
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-        if ! apt update -y 2>&1; then
-            error "Failed to update package list for Docker"
-            exit $EXIT_DEPENDENCY_FAILED
-        fi
-        if ! apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin 2>&1; then
-            error "Failed to install Docker"
-            if apt install -y docker-ce 2>&1 | grep -q "dpkg was interrupted"; then
-                exit $EXIT_DPKG_ERROR
-            fi
-            exit $EXIT_DEPENDENCY_FAILED
-        fi
-        systemctl enable docker
-        systemctl start docker
-        usermod -aG docker $(logname 2>/dev/null || echo "$USER")
-    } >> "$LOG_FILE" 2>&1
-    success "Docker installed"
-}
-
 # Install NVIDIA Container Toolkit
 install_nvidia_toolkit() {
     if is_package_installed "nvidia-docker2"; then
